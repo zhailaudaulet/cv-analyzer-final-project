@@ -1,16 +1,39 @@
+"""
+NLP pipeline of the Resume Analyzer: skill extraction (spaCy EntityRuler) and
+resume–vacancy matching (skill overlap + TF-IDF cosine similarity).
+
+The trained artifacts come from nlp-project.ipynb:
+    nlp_model/   spaCy pipeline with an EntityRuler of ~3 900 skill patterns
+    tfidf.pkl    TF-IDF vectorizer fitted on the resume corpus
+
+Both are loaded here, so the website, the Streamlit app and the notebook use the
+same models. If a file is missing or was saved with incompatible library
+versions, the pipeline falls back to en_core_web_md + the built-in vocabulary
+below and says so in MODEL_INFO.
+"""
+import pickle
 import re
-import ast
+import warnings
+from pathlib import Path
+
+import sklearn
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# ── Нормализация ──────────────────────────────────────────────────────────────
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "nlp_model"
+TFIDF_PATH = BASE_DIR / "tfidf.pkl"
+
+# ── Нормализация (та же, что в ноутбуке) ─────────────────────────────────────
 
 TECH_NORMALIZATIONS = {
     'js': 'javascript', 'py': 'python', 'ml': 'machine learning',
     'dl': 'deep learning', 'nlp': 'natural language processing',
     'tf': 'tensorflow', 'k8s': 'kubernetes', 'db': 'database',
-    'ci': 'ci/cd', 'oop': 'object oriented programming',
+    'oop': 'object oriented programming',
+    # дубликаты одного навыка в разных написаниях
+    'react.js': 'react', 'reactjs': 'react',
 }
 
 def normalize_skill(skill: str) -> str:
@@ -24,7 +47,9 @@ def clean_text(text: str) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# ── Словарь навыков ───────────────────────────────────────────────────────────
+# ── Словарь навыков вакансий ─────────────────────────────────────────────────
+# Добавляется к сохранённой модели, чтобы все навыки из jobs.py распознавались
+# (в модели из ноутбука нет, например, mlflow, nginx, terraform).
 
 SKILLS_VOCAB = [
     # Languages
@@ -67,50 +92,79 @@ SKILLS_VOCAB = [
     "unity", "unreal engine", "opencv", "selenium", "pytest",
 ]
 
-# ── spaCy pipeline (загружается один раз) ────────────────────────────────────
+# ── Загрузка моделей ─────────────────────────────────────────────────────────
 
-def build_nlp():
-    nlp = spacy.load("en_core_web_md", disable=["ner"])
+MODEL_INFO = {"spacy": spacy.__version__, "sklearn": sklearn.__version__}
+
+
+def _skill_patterns(nlp, skills):
+    """Token patterns built with the model's own tokenizer, so 'ci/cd',
+    'node.js' or 'c++' are split exactly like the resume text will be."""
     patterns = []
-    for skill in SKILLS_VOCAB:
-        skill_clean = skill.strip()
-        if len(skill_clean) < 2:
-            continue
-        tokens = skill_clean.lower().split()
-        if len(tokens) == 1:
-            patterns.append({"label": "SKILL", "pattern": [{"LOWER": tokens[0]}]})
-        else:
-            patterns.append({
-                "label": "SKILL",
-                "pattern": [{"LOWER": t} for t in tokens]
-            })
-    ruler = nlp.add_pipe("entity_ruler", config={"overwrite_ents": True})
-    ruler.add_patterns(patterns)
-    return nlp
+    for skill in skills:
+        tokens = [t.lower_ for t in nlp.make_doc(skill.strip())]
+        if tokens and len(skill.strip()) >= 2:
+            patterns.append({"label": "SKILL", "pattern": [{"LOWER": t} for t in tokens]})
+    return patterns
 
-nlp = build_nlp()
 
-# TF-IDF vectorizer (обучается на словаре навыков как корпусе)
-_tfidf = TfidfVectorizer(ngram_range=(1, 2), stop_words='english', max_features=10000)
-_tfidf.fit(SKILLS_VOCAB + [" ".join(SKILLS_VOCAB)])
+def load_spacy_model(extend: bool = True):
+    """Load the saved pipeline from nlp_model/. With extend=True the vacancy
+    skills from SKILLS_VOCAB are added to its EntityRuler."""
+    try:
+        nlp = spacy.load(MODEL_DIR)
+        source = "nlp_model/ (сохранённая модель из ноутбука)"
+    except Exception as exc:                      # нет папки или несовместимая версия
+        warnings.warn(f"Не удалось загрузить {MODEL_DIR.name}: {exc}. "
+                      "Используется en_core_web_md + встроенный словарь.")
+        nlp = spacy.load("en_core_web_md", disable=["ner"])
+        nlp.add_pipe("entity_ruler", config={"overwrite_ents": True})
+        source = "en_core_web_md + встроенный словарь (fallback)"
+        extend = True
+
+    if extend:
+        ruler = nlp.get_pipe("entity_ruler")
+        existing = {tuple(tok.get("LOWER") for tok in p["pattern"])
+                    for p in ruler.patterns if isinstance(p["pattern"], list)}
+        new = [p for p in _skill_patterns(nlp, SKILLS_VOCAB)
+               if tuple(tok["LOWER"] for tok in p["pattern"]) not in existing]
+        ruler.add_patterns(new)
+        source += f", +{len(new)} навыков вакансий"
+    return nlp, source
+
+
+def load_vectorizer():
+    """Load the TF-IDF vectorizer fitted in the notebook (tfidf.pkl)."""
+    try:
+        with open(TFIDF_PATH, "rb") as f:
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                vectorizer = pickle.load(f)
+        for w in caught:                          # например, другая версия sklearn
+            print(f"[nlp_pipeline] {w.message}")
+        return vectorizer, f"tfidf.pkl ({len(vectorizer.vocabulary_)} терминов)"
+    except Exception as exc:
+        warnings.warn(f"Не удалось загрузить {TFIDF_PATH.name}: {exc}. "
+                      "TF-IDF обучается на встроенном словаре.")
+        vectorizer = TfidfVectorizer(ngram_range=(1, 2), stop_words='english')
+        vectorizer.fit(SKILLS_VOCAB + [" ".join(SKILLS_VOCAB)])
+        return vectorizer, "встроенный словарь (fallback)"
+
+
+nlp, MODEL_INFO["ner_model"] = load_spacy_model(extend=True)
+_tfidf, MODEL_INFO["tfidf"] = load_vectorizer()
 
 # ── Извлечение навыков ────────────────────────────────────────────────────────
 
-def extract_skills(text: str) -> list[str]:
-    text = clean_text(text)
-    doc = nlp(text)
-    skills = list(set([
-        normalize_skill(ent.text)
-        for ent in doc.ents
-        if ent.label_ == "SKILL"
-    ]))
-    return sorted(skills)
+def extract_skills(text: str, model=None) -> list[str]:
+    doc = (model if model is not None else nlp)(clean_text(text))
+    return sorted({normalize_skill(ent.text) for ent in doc.ents if ent.label_ == "SKILL"})
 
 # ── Matching ──────────────────────────────────────────────────────────────────
 
 def skill_overlap(resume_skills: list, job_skills: list) -> dict:
-    rs = set(resume_skills)
-    js = set(job_skills)
+    rs = {normalize_skill(s) for s in resume_skills}
+    js = {normalize_skill(s) for s in job_skills}
     if not js:
         return {"score": 0.0, "matched": [], "missing": []}
     matched = sorted(rs & js)
@@ -122,7 +176,7 @@ def skill_overlap(resume_skills: list, job_skills: list) -> dict:
     }
 
 def tfidf_similarity(text_a: str, text_b: str) -> float:
-    vecs = _tfidf.transform([text_a, text_b])
+    vecs = _tfidf.transform([clean_text(text_a), clean_text(text_b)])
     return round(float(cosine_similarity(vecs[0], vecs[1])[0][0]), 4)
 
 # ── Рекомендации ──────────────────────────────────────────────────────────────
@@ -167,9 +221,10 @@ def generate_recommendations(overlap: dict, score: float) -> dict:
         ]
     }
 
-# ── Главная функция ───────────────────────────────────────────────────────────
+# ── Главные функции ───────────────────────────────────────────────────────────
 
 def analyze(resume_text: str, job_skills: list[str], job_description: str) -> dict:
+    """Used by the website and the Streamlit app: the vacancy's skills come from jobs.py."""
     resume_skills = extract_skills(resume_text)
     overlap       = skill_overlap(resume_skills, job_skills)
     tfidf         = tfidf_similarity(resume_text, job_description)
@@ -184,4 +239,22 @@ def analyze(resume_text: str, job_skills: list[str], job_description: str) -> di
         "matched":        overlap["matched"],
         "missing":        overlap["missing"],
         "recommendations": recs,
+    }
+
+
+def analyze_texts(resume_text: str, job_text: str, model=None) -> dict:
+    """Same steps as analyze_resume() in nlp-project.ipynb (skills of BOTH texts are
+    extracted by the model). Used by check_consistency.py to compare with the notebook."""
+    resume_skills = extract_skills(resume_text, model)
+    job_skills    = extract_skills(job_text, model)
+    overlap       = skill_overlap(resume_skills, job_skills)
+    tfidf         = tfidf_similarity(resume_text, job_text)
+    return {
+        "resume_skills": resume_skills,
+        "job_skills":    job_skills,
+        "skill_overlap": overlap["score"],
+        "tfidf_sim":     tfidf,
+        "final_score":   round(0.6 * overlap["score"] + 0.4 * tfidf, 4),
+        "matched":       overlap["matched"],
+        "missing":       overlap["missing"],
     }

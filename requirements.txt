@@ -1,11 +1,23 @@
-seaborn
-matplotlib
-pandas
+# Python 3.11 (3.12 тоже подходит; 3.13 не поддерживается этими версиями)
+# После установки: python -m spacy download en_core_web_md
+
+# NLP и модели. Версии совпадают с теми, в которых сохранены nlp_model/ и tfidf.pkl
+spacy==3.8.2
+scikit-learn==1.6.1
+numpy==2.2.3
+
+# Данные, база данных, визуализация
+pandas==2.2.3
+pyarrow==18.1.0
+matplotlib==3.9.2
+seaborn==0.13.2
+
+# Веб-приложение (FastAPI) и дашборд (Streamlit)
 fastapi==0.115.0
 uvicorn==0.30.6
 python-multipart==0.0.9
 pypdf==4.3.1
-spacy==3.7.5
-scikit-learn==1.5.2
-numpy==1.26.4
-# После установки: python -m spacy download en_core_web_md
+streamlit==1.40.0
+
+# Запуск ноутбуков в VS Code
+ipykernel==6.29.5

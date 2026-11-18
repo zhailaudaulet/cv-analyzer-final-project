@@ -13,6 +13,9 @@ class Job:
     requirements: list[str]
     skills: list[str]  # для NER matching
     nice_to_have: list[str]
+    # English version of the vacancy text. Used for TF-IDF matching, because the
+    # resumes and the TF-IDF vocabulary (tfidf.pkl) are English.
+    text_en: str = ""
 
 JOBS: dict[str, Job] = {
 
@@ -52,6 +55,9 @@ JOBS: dict[str, Job] = {
             "Знание MLflow или аналогов",
             "Публикации или open-source вклад",
         ],
+        text_en=(
+            "AI / ML Engineer. Develop and deploy machine learning models to production. Build RAG pipelines with large language models (LLM). Optimize inference latency, cost and quality. Write clean, tested Python code and take part in code review. Requirements: 3+ years of Python, experience with PyTorch or TensorFlow, understanding of transformers and natural language processing (NLP), Docker and basic DevOps, vector databases (Pinecone, Weaviate, Chroma). Nice to have: LangChain or LlamaIndex, MLflow, open-source contributions."
+        ),
     ),
 
     "backend": Job(
@@ -90,6 +96,9 @@ JOBS: dict[str, Job] = {
             "Знание Kafka или RabbitMQ",
             "Опыт с облачными провайдерами (AWS / GCP)",
         ],
+        text_en=(
+            "Backend Engineer. Develop REST and GraphQL APIs for a high-load service, design database schemas, optimize query performance, write unit and integration tests, maintain CI/CD pipelines. Requirements: Python (FastAPI, Django) or Node.js, strong PostgreSQL and SQL, Docker and docker-compose, REST API and HTTP, Git and Linux. Nice to have: Kubernetes, Kafka or RabbitMQ, Redis, Celery, Nginx, cloud providers (AWS, GCP)."
+        ),
     ),
 
     "frontend": Job(
@@ -128,6 +137,9 @@ JOBS: dict[str, Job] = {
             "Знание Figma",
             "Опыт с тестированием (Jest, Cypress)",
         ],
+        text_en=(
+            "Frontend Engineer. Build modern user interfaces and UI components in React, integrate with REST and GraphQL APIs, optimize frontend performance, support cross-browser compatibility, take part in UX design. Requirements: strong React and TypeScript, JavaScript, HTML, CSS and Sass, REST API integration, Git workflow, Web Vitals. Nice to have: Next.js, Redux, Tailwind, Webpack or Vite, Vue.js or Angular, Figma, testing with Jest and Cypress."
+        ),
     ),
 
     "data-engineer": Job(
@@ -166,6 +178,9 @@ JOBS: dict[str, Job] = {
             "Знание Terraform",
             "Опыт с Databricks",
         ],
+        text_en=(
+            "Data Engineer. Build a data platform from scratch: design and maintain ETL/ELT pipelines, process streaming data with Kafka and Spark, optimize the data warehouse, build data quality monitoring and document data lineage. Requirements: strong Python, Apache Spark or PySpark, advanced SQL, Airflow, cloud data warehouses (Amazon Redshift, Google BigQuery, Snowflake), big data with Hadoop and Hive. Nice to have: dbt, Terraform, Databricks, Docker, AWS."
+        ),
     ),
 
     "devops": Job(
@@ -204,5 +219,8 @@ JOBS: dict[str, Job] = {
             "Знание Vault (HashiCorp)",
             "Опыт с eBPF или сетевой безопасностью",
         ],
+        text_en=(
+            "DevOps / Platform Engineer. Build and support cloud infrastructure: manage Kubernetes clusters, build CI/CD pipelines, infrastructure as code with Terraform and Ansible, monitoring and alerting with Prometheus and Grafana, infrastructure and network security. Requirements: strong Kubernetes, Docker and containerization, Terraform or Ansible, AWS, GCP or Azure, Linux and Bash scripting, Git, Python. Nice to have: Helm, HashiCorp Vault, Nginx, Redis, PostgreSQL."
+        ),
     ),
 }
