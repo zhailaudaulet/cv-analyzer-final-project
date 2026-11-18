@@ -1,0 +1,11 @@
+seaborn
+matplotlib
+pandas
+fastapi==0.115.0
+uvicorn==0.30.6
+python-multipart==0.0.9
+pypdf==4.3.1
+spacy==3.7.5
+scikit-learn==1.5.2
+numpy==1.26.4
+# После установки: python -m spacy download en_core_web_md

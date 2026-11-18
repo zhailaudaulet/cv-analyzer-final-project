@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "static/index.html"
+        ],
+        "createdAt": "2026-11-18T05:40:05.353Z",
+        "reason": "Claude: false positive, insets come from .wrap gutter / .acc-item padding / section padding-block, verified in screenshots"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "static/job.html"
+        ],
+        "createdAt": "2026-11-18T05:40:05.368Z",
+        "reason": "Claude: false positive, insets come from .wrap gutter / .acc-item padding / section padding-block, verified in screenshots"
+      }
+    ]
+  }
+}
