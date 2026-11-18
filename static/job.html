@@ -104,6 +104,25 @@
 
   #analyze-btn { width: 100%; }
 
+  /* PDF / text input switch */
+  .input-tabs { display: flex; border: 1px solid var(--line); margin-bottom: 14px; }
+  .input-tab {
+    flex: 1; padding: 9px 12px; font: inherit; font-size: 14px;
+    background: transparent; border: 0; color: var(--muted); cursor: pointer;
+  }
+  .input-tab + .input-tab { border-left: 1px solid var(--line); }
+  .input-tab.active { background: var(--ink); color: var(--surface); }
+  .input-tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  #resume-text {
+    display: block; width: 100%; min-height: 220px; resize: vertical;
+    padding: 14px; margin-bottom: 8px;
+    font: inherit; font-size: 14px; line-height: 1.5; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  #resume-text:focus { outline: none; border-color: var(--ink); }
+  .hidden { display: none !important; }
+
   /* Results */
   #results:not(:empty) { margin-top: 28px; }
 
@@ -218,9 +237,20 @@
     <aside class="panel">
       <div class="panel-header">
         <h2>Проверить резюме</h2>
-        <p>PDF с текстовым слоем. Файл нигде не сохраняется.</p>
+        <p>Загрузите PDF или вставьте текст резюме (на английском). Сам файл не сохраняется.</p>
       </div>
       <div class="panel-body">
+        <div class="input-tabs" role="tablist">
+          <button class="input-tab active" id="tab-pdf" role="tab" aria-selected="true">PDF файл</button>
+          <button class="input-tab" id="tab-text" role="tab" aria-selected="false">Вставить текст</button>
+        </div>
+
+        <div id="text-mode" class="hidden">
+          <textarea id="resume-text" placeholder="Вставьте сюда текст резюме: опыт, навыки, проекты…"></textarea>
+          <div class="file-name" id="text-count">0 символов (минимум 50)</div>
+        </div>
+
+        <div id="pdf-mode">
         <label class="dropzone" id="dropzone">
           <input type="file" id="file-input" accept=".pdf">
           <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3H6v18h12V7l-4-4Z"/><path d="M14 3v4h4M12 17v-6M9 14l3-3 3 3"/></svg>
@@ -229,6 +259,7 @@
         </label>
 
         <div class="file-name" id="file-name"></div>
+        </div>
 
         <button class="btn btn-primary" id="analyze-btn" disabled>Анализировать</button>
 
@@ -279,7 +310,7 @@ const fileLabel = document.getElementById('file-name');
 const btn       = document.getElementById('analyze-btn');
 
 function setFile(file) {
-  if (!file || !file.name.endsWith('.pdf')) {
+  if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
     fileLabel.textContent = 'Нужен PDF файл';
     fileLabel.style.color = 'var(--bad)';
     return;
@@ -300,24 +331,65 @@ dropzone.addEventListener('drop', e => {
   setFile(e.dataTransfer.files[0]);
 });
 
+// ── PDF / text switch ─────────────────────────────────────────────────────────
+const MIN_TEXT = 50;
+const textArea  = document.getElementById('resume-text');
+const textCount = document.getElementById('text-count');
+let mode = 'pdf';
+
+function updateButton() {
+  btn.disabled = mode === 'pdf' ? !selectedFile : textArea.value.trim().length < MIN_TEXT;
+}
+
+function setMode(newMode) {
+  mode = newMode;
+  document.getElementById('pdf-mode').classList.toggle('hidden', mode !== 'pdf');
+  document.getElementById('text-mode').classList.toggle('hidden', mode !== 'text');
+  for (const [id, m] of [['tab-pdf', 'pdf'], ['tab-text', 'text']]) {
+    const tab = document.getElementById(id);
+    tab.classList.toggle('active', mode === m);
+    tab.setAttribute('aria-selected', mode === m);
+  }
+  updateButton();
+}
+
+document.getElementById('tab-pdf').addEventListener('click', () => setMode('pdf'));
+document.getElementById('tab-text').addEventListener('click', () => setMode('text'));
+textArea.addEventListener('input', () => {
+  const n = textArea.value.trim().length;
+  textCount.textContent = n >= MIN_TEXT ? `${n} символов` : `${n} символов (минимум ${MIN_TEXT})`;
+  updateButton();
+});
+
 // ── Analyze ───────────────────────────────────────────────────────────────────
 btn.addEventListener('click', async () => {
-  if (!selectedFile) return;
+  if (mode === 'pdf' && !selectedFile) return;
 
   const results = document.getElementById('results');
   btn.disabled  = true;
   btn.innerHTML = '<div class="spinner"></div> Анализируем…';
   results.innerHTML = '';
 
-  const form = new FormData();
-  form.append('file', selectedFile);
+  let request;
+  if (mode === 'pdf') {
+    const form = new FormData();
+    form.append('file', selectedFile);
+    request = fetch(`/api/analyze/${jobId}`, { method: 'POST', body: form });
+  } else {
+    request = fetch(`/api/analyze-text/${jobId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: textArea.value }),
+    });
+  }
 
   try {
-    const res  = await fetch(`/api/analyze/${jobId}`, { method: 'POST', body: form });
+    const res  = await request;
     const data = await res.json();
 
     if (!res.ok) {
-      results.innerHTML = `<div class="error-msg">${data.detail || 'Ошибка анализа'}</div>`;
+      const msg = typeof data.detail === 'string' ? data.detail : 'Ошибка анализа';
+      results.innerHTML = `<div class="error-msg">${msg}</div>`;
       return;
     }
 

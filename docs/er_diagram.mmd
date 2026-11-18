@@ -1,0 +1,80 @@
+erDiagram
+    resumes ||--o{ resume_skills : "lists"
+    skills  ||--o{ resume_skills : "appears in"
+    jobs    ||--o{ job_skills : "requires"
+    skills  ||--o{ job_skills : "required by"
+    resumes ||--o{ education : "has"
+    resumes ||--o{ experience : "has"
+    resumes ||--o{ matches : "scored against"
+    jobs    ||--o{ matches : "scored for"
+    jobs    ||--o{ analysis_results : "analysed for"
+    analysis_results ||--o{ analysis_skills : "found"
+    skills  ||--o{ analysis_skills : "is"
+
+    resumes {
+        INTEGER resume_id PK
+        TEXT address
+        TEXT career_objective
+        TEXT languages
+        TEXT skills_raw
+    }
+    jobs {
+        INTEGER job_id PK
+        TEXT job_key UK "jobs.py id (app only)"
+        TEXT source "dataset | app"
+        TEXT title
+        TEXT education_requirement
+        TEXT experience_requirement
+        INTEGER min_experience_years
+        TEXT age_requirement
+        TEXT responsibilities
+    }
+    skills {
+        INTEGER skill_id PK
+        TEXT name UK
+    }
+    resume_skills {
+        INTEGER resume_id PK,FK
+        INTEGER skill_id PK,FK
+    }
+    job_skills {
+        INTEGER job_id PK,FK
+        INTEGER skill_id PK,FK
+    }
+    education {
+        INTEGER education_id PK
+        INTEGER resume_id FK
+        TEXT institution
+        TEXT degree
+        TEXT major
+        TEXT passing_year
+        TEXT result
+    }
+    experience {
+        INTEGER experience_id PK
+        INTEGER resume_id FK
+        TEXT company
+        TEXT position
+        TEXT start_date
+        TEXT end_date
+    }
+    matches {
+        INTEGER resume_id PK,FK
+        INTEGER job_id PK,FK
+        REAL matched_score "ground-truth label"
+    }
+    analysis_results {
+        INTEGER analysis_id PK
+        INTEGER job_id FK
+        TEXT created_at
+        TEXT input_type "pdf | text"
+        INTEGER resume_chars
+        REAL final_score
+        REAL skill_overlap
+        REAL tfidf_sim
+    }
+    analysis_skills {
+        INTEGER analysis_id PK,FK
+        INTEGER skill_id PK,FK
+        TEXT status "matched | missing | extra"
+    }
