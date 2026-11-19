@@ -1,13 +1,14 @@
 {
-  "created": "2026-11-19 16:42:58",
+  "created": "2026-11-19 16:47:02",
   "seed": 42,
   "dataset_md5": "95e9272dfbdabb0b8f96403b9bf5852e",
   "versions": {
     "python": "3.12.10",
     "spacy": "3.8.18",
-    "spacy_model": "3.8.0",
     "sklearn": "1.9.1",
-    "numpy": "2.5.5"
+    "numpy": "2.5.5",
+    "ner_base": "spacy.blank('en')",
+    "lemmatizer_model": "en_core_web_md 3.8.0"
   },
   "split": {
     "fractions": {
@@ -15,27 +16,43 @@
       "train": 0.4,
       "test": 0.2
     },
-    "sizes": {
-      "vocab": 3806,
-      "train": 3806,
-      "test": 1904
+    "unit": "vacancy+resume",
+    "group_col": "job_text",
+    "resumes": {
+      "test": 69,
+      "train": 137,
+      "vocab": 136
     },
-    "duplicates_removed": 28
+    "sizes": {
+      "train": 1493,
+      "vocab": 1485,
+      "test": 409
+    },
+    "vacancies": {
+      "test": 6,
+      "train": 11,
+      "vocab": 11
+    },
+    "duplicates_removed": 0,
+    "pairs_kept": 3387
   },
+  "resume_fields": [
+    "career_objective",
+    "skills"
+  ],
   "ner": {
-    "n_patterns": 3970,
-    "vocab_split_skills": 3911,
+    "n_patterns": 2140,
+    "vocab_split_skills": 2062,
     "curated_skills": 138,
     "test_metrics": {
-      "n_docs": 1891,
-      "P_micro": 0.9996439873417722,
-      "R_micro": 0.9994265488125605,
-      "F1_micro": 0.9995352562517923,
-      "P_macro": 0.9996217866392377,
-      "R_macro": 0.9995023478595114,
-      "F1_macro": 0.9995614381320773
-    },
-    "leaky_protocol_F1_micro": 0.9995352562517923
+      "n_docs": 68,
+      "P_micro": 0.7650073206442167,
+      "R_micro": 0.6450617283950617,
+      "F1_micro": 0.6999330207635633,
+      "P_macro": 0.7828669166859382,
+      "R_macro": 0.6592141347091881,
+      "F1_macro": 0.7110490717180536
+    }
   },
   "tfidf": {
     "params": {
@@ -47,26 +64,149 @@
       "max_features": 10000,
       "sublinear_tf": true
     },
-    "fit_docs": 3806,
-    "n_terms": 10000
+    "fit_docs": 137,
+    "n_terms": 6615
   },
   "matching_test": {
-    "n_classes": 28,
-    "n_test": 1904,
+    "protocol": "vacancy-grouped split; Spearman rho between similarity and matched_score within each vacancy",
+    "n_test": 409,
+    "n_test_vacancies": 6,
     "tfidf": {
-      "accuracy": 1.0,
-      "macro_f1": 1.0,
-      "P@5": 0.2,
-      "P@10": 0.1,
-      "MRR": 1.0
+      "vacancies_in_eval": 6,
+      "rho_within_vacancy": 0.33931853563163233,
+      "rho_ci95": [
+        0.24342690057070368,
+        0.42554635103456556
+      ],
+      "p10_top20pct": 0.5499999999999999,
+      "p10_random": 0.3131571469167377,
+      "retrieval_P@1": 0.16625916870415647,
+      "retrieval_P@5": 0.16674816625916872,
+      "retrieval_MRR": 0.40814995925020375
     },
-    "best_representation": "Skill-overlap (NER → бинарные навыки)",
+    "product_score": {
+      "vacancies_in_eval": 6,
+      "rho_within_vacancy": 0.33512746260366005,
+      "rho_ci95": [
+        0.25400762495291057,
+        0.41006981041861906
+      ],
+      "p10_top20pct": 0.5833333333333334
+    },
+    "best_representation": "TF-IDF (1–2-граммы, sublinear)",
     "best": {
-      "accuracy": 1.0,
-      "macro_f1": 1.0,
-      "P@5": 0.2,
-      "P@10": 0.1,
-      "MRR": 0.9962359943977591
+      "vacancies_in_eval": 6,
+      "rho_within_vacancy": 0.33931853563163233,
+      "rho_ci95": [
+        0.24342690057070368,
+        0.42554635103456556
+      ],
+      "p10_top20pct": 0.5499999999999999,
+      "p10_random": 0.3131571469167377,
+      "retrieval_P@1": 0.16625916870415647,
+      "retrieval_P@5": 0.16674816625916872,
+      "retrieval_MRR": 0.40814995925020375
+    }
+  },
+  "product_score": {
+    "w_overlap": 0.6,
+    "level_thresholds": [
+      0.4,
+      0.65
+    ],
+    "level_names": [
+      "Низкое",
+      "Хорошее",
+      "Отличное"
+    ]
+  },
+  "confusion": {
+    "labels": [
+      "Низкое",
+      "Хорошее",
+      "Отличное"
+    ],
+    "n_pairs": 409,
+    "fixed_thresholds": {
+      "thresholds": [
+        0.4,
+        0.65
+      ],
+      "matrix": [
+        [
+          41,
+          0,
+          0
+        ],
+        [
+          69,
+          0,
+          0
+        ],
+        [
+          299,
+          0,
+          0
+        ]
+      ],
+      "accuracy": 0.10024449877750612,
+      "kappa_quadratic": 0.0,
+      "pred_share": [
+        1.0,
+        0.0,
+        0.0
+      ]
+    },
+    "calibrated": {
+      "method": "rank on train final_score, level shares of matched_score on train",
+      "train_level_shares": [
+        0.0717,
+        0.1453,
+        0.783
+      ],
+      "quantile_thresholds": [
+        0.0,
+        0.0
+      ],
+      "matrix": [
+        [
+          0,
+          17,
+          24
+        ],
+        [
+          0,
+          27,
+          42
+        ],
+        [
+          0,
+          83,
+          216
+        ]
+      ],
+      "accuracy": 0.5941320293398533,
+      "kappa_quadratic": 0.1060191392832871,
+      "pred_share": [
+        0.0,
+        0.311,
+        0.689
+      ]
+    },
+    "top_within_vacancy": {
+      "matrix": [
+        [
+          244,
+          37
+        ],
+        [
+          81,
+          47
+        ]
+      ],
+      "precision": 0.5595238095238095,
+      "recall": 0.3671875,
+      "base_rate": 0.31295843520782396
     }
   }
 }
