@@ -101,5 +101,12 @@
       "retrieval_P@5": 0.16674864731923267,
       "retrieval_MRR": 0.40835382849647484
     }
+  },
+  "example": {
+    "resume_text": "\nExperienced Data Scientist with 4 years of industry experience.\nProficient in Python, pandas, scikit-learn, TensorFlow, and PyTorch.\nStrong background in machine learning, deep learning, and NLP.\nWorked with PostgreSQL, MongoDB, AWS S3, and Spark.\nFamiliar with Docker, Git, and CI/CD pipelines.\nExperience building REST APIs with FastAPI and Flask.\n",
+    "job_text": "\nWe are looking for a Machine Learning Engineer to join our team.\nRequirements:\n- Python (3+ years)\n- TensorFlow or PyTorch\n- Experience with NLP and transformer models\n- SQL databases (PostgreSQL preferred)\n- Docker and Kubernetes\n- AWS or GCP cloud platforms\n- MLflow or similar experiment tracking\n- Strong understanding of statistics and algorithms\n",
+    "tfidf_sim": 0.2177,
+    "skill_overlap": 0.438,
+    "final_score": 0.3499
   }
 }
