@@ -1,0 +1,105 @@
+{
+  "created": "2026-11-19 14:56:12",
+  "seed": 42,
+  "dataset_md5": "95e9272dfbdabb0b8f96403b9bf5852e",
+  "versions": {
+    "python": "3.12.10",
+    "spacy": "3.8.18",
+    "spacy_model": "3.8.0",
+    "sklearn": "1.9.1",
+    "numpy": "2.5.5"
+  },
+  "split": {
+    "fractions": {
+      "vocab": 0.4,
+      "train": 0.4,
+      "test": 0.2
+    },
+    "unit": "vacancy",
+    "group_col": "job_text",
+    "sizes": {
+      "train": 3728,
+      "vocab": 3727,
+      "test": 2033
+    },
+    "vacancies": {
+      "test": 6,
+      "train": 11,
+      "vocab": 11
+    },
+    "duplicates_removed": 0
+  },
+  "resume_fields": [
+    "career_objective",
+    "skills"
+  ],
+  "ner": {
+    "n_patterns": 3970,
+    "vocab_split_skills": 3911,
+    "curated_skills": 138,
+    "test_metrics": {
+      "n_docs": 2021,
+      "P_micro": 0.9996679028062213,
+      "R_micro": 0.9994466271927398,
+      "F1_micro": 0.9995572527533344,
+      "P_macro": 0.9996389557992725,
+      "R_macro": 0.9995180434725589,
+      "F1_macro": 0.9995778673844377
+    },
+    "leaky_protocol_F1_micro": 0.9995572527533344
+  },
+  "tfidf": {
+    "params": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "stop_words": "english",
+      "max_features": 10000,
+      "sublinear_tf": true
+    },
+    "fit_docs": 3728,
+    "n_terms": 10000
+  },
+  "matching_test": {
+    "protocol": "vacancy-grouped split; Spearman rho between similarity and matched_score within each vacancy",
+    "n_test": 2033,
+    "n_test_vacancies": 6,
+    "tfidf": {
+      "vacancies_in_eval": 6,
+      "rho_within_vacancy": 0.2991779364748253,
+      "rho_ci95": [
+        0.17598915972073712,
+        0.40067526867574527
+      ],
+      "p10_top20pct": 0.65,
+      "p10_random": 0.28894069697837765,
+      "retrieval_P@1": 0.16674864731923267,
+      "retrieval_P@5": 0.16665027053615347,
+      "retrieval_MRR": 0.4083948188227578
+    },
+    "product_score": {
+      "vacancies_in_eval": 6,
+      "rho_within_vacancy": 0.3061760561168058,
+      "rho_ci95": [
+        0.17703613313773686,
+        0.42409333910666386
+      ],
+      "p10_top20pct": 0.5666666666666665
+    },
+    "best_representation": "spaCy-эмбеддинги (en_core_web_md, mean)",
+    "best": {
+      "vacancies_in_eval": 6,
+      "rho_within_vacancy": 0.32971582913569736,
+      "rho_ci95": [
+        0.2687801124695333,
+        0.38594142737812964
+      ],
+      "p10_top20pct": 0.65,
+      "p10_random": 0.28894069697837765,
+      "retrieval_P@1": 0.1662567634038367,
+      "retrieval_P@5": 0.16674864731923267,
+      "retrieval_MRR": 0.40835382849647484
+    }
+  }
+}
