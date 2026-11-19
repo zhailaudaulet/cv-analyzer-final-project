@@ -148,6 +148,11 @@ main { overflow-x: hidden; width: 100%; max-width: 100%; }
 .btn .arrow { transition: transform .3s ease; }
 .btn:hover .arrow { transform: translateX(4px); }
 
+/* Skill tags (hero preview + results) */
+.tag { font-family: var(--mono); font-size: 12px; padding: 4px 8px; border: 1px solid var(--line); color: var(--muted); }
+.tag.match { color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+.tag.miss { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+
 /* Footer */
 .footer {
   border-top: 1px solid var(--line);

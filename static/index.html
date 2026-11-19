@@ -32,16 +32,16 @@
   }
 
   .hero-note {
-    grid-column: 1 / span 4;
+    margin-top: 24px;
     font-family: var(--mono);
     font-size: 13px;
     color: var(--muted);
-    max-width: 32ch;
+    max-width: 46ch;
   }
 
-  .hero-copy { grid-column: 7 / -1; }
+  .hero-copy { grid-column: 7 / -1; align-self: center; }
 
-  .hero-copy p {
+  .hero-lead {
     font-size: clamp(1.05rem, 1.4vw, 1.25rem);
     color: var(--muted);
     line-height: 1.55;
@@ -51,9 +51,27 @@
 
   .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
 
+  /* Sample result: mirrors the real results panel on the job page */
+  .hero-preview {
+    grid-column: 1 / span 5;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: clamp(20px, 2.4vw, 28px);
+  }
+
+  .pv-cap { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .pv-score { font-size: 56px; font-weight: 600; letter-spacing: -0.05em; line-height: 1; color: var(--good); font-variant-numeric: tabular-nums; }
+  .pv-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .pv-row b { font-weight: 500; color: var(--ink); }
+  .pv-bar { height: 4px; background: var(--line); margin-top: 14px; }
+  .pv-bar span { display: block; height: 100%; width: 72%; background: var(--good); }
+  .pv-group { padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--line); }
+  .pv-label { font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+  .pv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
   @media (max-width: 860px) {
-    .hero-note, .hero-copy { grid-column: 1 / -1; }
-    .hero-note { order: 2; }
+    .hero-preview, .hero-copy { grid-column: 1 / -1; }
+    .hero-preview { order: 2; }
   }
 
   /* Sections */
@@ -85,7 +103,6 @@
     gap: 1px;
     background: var(--line);
     border: 1px solid var(--line);
-    transform-origin: 50% 0;
   }
 
   .job {
@@ -209,7 +226,7 @@
   .acc-body p { color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 40ch; margin-bottom: 20px; }
   .acc-body span { font-family: var(--mono); font-size: 12px; color: var(--accent); }
 
-  @media (max-width: 760px) {
+  @media (max-width: 1024px) {
     .acc { flex-direction: column; height: auto; }
     .acc-item { border-left: 0; border-top: 1px solid var(--line); }
     .acc-item:first-child { border-top: 0; }
@@ -246,8 +263,8 @@
       <a class="optional" href="#method">Как это работает</a>
     </nav>
     <button class="theme-toggle" type="button" aria-label="Переключить тему" title="Переключить тему">
-      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+      <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
   </div>
 </header>
@@ -257,13 +274,27 @@
     <div class="wrap">
       <h1>Сравните резюме с вакансией <span class="dim">до того, как это сделает рекрутер</span></h1>
       <div class="hero-split">
-        <p class="hero-note">Работает с текстовыми PDF. Сканы без текстового слоя не распознаются.</p>
+        <figure class="hero-preview">
+          <figcaption class="pv-cap">Пример результата · Data Analyst</figcaption>
+          <div class="pv-score">72%</div>
+          <div class="pv-row"><span>Итоговая оценка</span><b>Отличное соответствие</b></div>
+          <div class="pv-bar" aria-hidden="true"><span></span></div>
+          <div class="pv-group">
+            <div class="pv-label">Совпадают с вакансией</div>
+            <div class="pv-tags"><span class="tag match">Python</span><span class="tag match">SQL</span><span class="tag match">Pandas</span><span class="tag match">Tableau</span></div>
+          </div>
+          <div class="pv-group">
+            <div class="pv-label">Отсутствуют</div>
+            <div class="pv-tags"><span class="tag miss">Airflow</span><span class="tag miss">Docker</span></div>
+          </div>
+        </figure>
         <div class="hero-copy">
-          <p>Загрузите резюме — система извлечёт навыки, сравнит их с требованиями позиции и покажет, чего не хватает и что стоит подтянуть.</p>
+          <p class="hero-lead">Загрузите резюме — система извлечёт навыки, сравнит их с требованиями позиции и покажет, чего не хватает и что стоит подтянуть.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#jobs">Выбрать вакансию <span class="arrow">&rarr;</span></a>
+            <a class="btn btn-primary" href="#jobs">Выбрать вакансию <span class="arrow" aria-hidden="true">&rarr;</span></a>
             <a class="btn btn-ghost" href="#method">Как это работает</a>
           </div>
+          <p class="hero-note">Работает с текстовыми PDF. Сканы без текстового слоя не распознаются.</p>
         </div>
       </div>
     </div>
@@ -314,7 +345,7 @@
   <section class="cta">
     <div class="wrap">
       <h2>Проверьте резюме за полминуты</h2>
-      <a class="btn" href="#jobs">Смотреть вакансии <span class="arrow">&rarr;</span></a>
+      <a class="btn" href="#jobs">Смотреть вакансии <span class="arrow" aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
 </main>
@@ -346,7 +377,7 @@ async function loadJobs() {
     const jobs = await res.json();
     grid.innerHTML = jobs.map((j, i) => `
       <a class="job${i === 0 ? ' wide' : ''}" href="/job/${j.id}">
-        <div class="job-top"><span>${j.team}</span><span class="job-arrow">&rarr;</span></div>
+        <div class="job-top"><span>${j.team}</span><span class="job-arrow" aria-hidden="true">&rarr;</span></div>
         <h3>${j.title}</h3>
         <p>${j.description}</p>
         <div class="job-meta"><span>${j.level}</span><span>${j.location}</span><span>${j.type}</span></div>
@@ -360,9 +391,9 @@ async function loadJobs() {
 if (motion) {
   gsap.from('.hero h1, .hero-split', { opacity: 0, y: 32, duration: 1.1, ease: 'power3.out', stagger: .15 });
 
-  // Bento grows from 0.94 to full scale as it enters the viewport.
-  gsap.fromTo('#jobs-grid', { scale: .94, opacity: .5 }, {
-    scale: 1, opacity: 1, ease: 'none',
+  // Bento fades up as it enters the viewport.
+  gsap.fromTo('#jobs-grid', { y: 40, opacity: .5 }, {
+    y: 0, opacity: 1, ease: 'none',
     scrollTrigger: { trigger: '#jobs-grid', start: 'top 95%', end: 'top 45%', scrub: true },
   });
 
